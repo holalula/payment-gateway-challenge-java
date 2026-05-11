@@ -1,5 +1,7 @@
 package com.checkout.payment.gateway.service;
 
+import com.checkout.payment.gateway.model.bank.BankPaymentRequest;
+import com.checkout.payment.gateway.model.bank.BankPaymentResponse;
 import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.exception.EventProcessingException;
 import com.checkout.payment.gateway.model.PostPaymentRequest;
@@ -16,9 +18,11 @@ public class PaymentGatewayService {
   private static final Logger LOG = LoggerFactory.getLogger(PaymentGatewayService.class);
 
   private final PaymentsRepository paymentsRepository;
+  private final BankClient bankClient;
 
-  public PaymentGatewayService(PaymentsRepository paymentsRepository) {
+  public PaymentGatewayService(PaymentsRepository paymentsRepository, BankClient bankClient) {
     this.paymentsRepository = paymentsRepository;
+    this.bankClient = bankClient;
   }
 
   public PostPaymentResponse getPaymentById(UUID id) {
@@ -26,14 +30,6 @@ public class PaymentGatewayService {
     return paymentsRepository.get(id).orElseThrow(() -> new EventProcessingException("Invalid ID"));
   }
 
-  /**
-   * Process a payment request.
-   * This is a stub implementation that always returns AUTHORIZED status.
-   * TODO: Integrate with bank client to get actual authorization status.
-   *
-   * @param paymentRequest the payment request
-   * @return payment response with status
-   */
   public PostPaymentResponse processPayment(PostPaymentRequest paymentRequest) {
     LOG.info("Processing payment request: {}", paymentRequest);
 
@@ -44,10 +40,27 @@ public class PaymentGatewayService {
     String cardNumber = paymentRequest.getCardNumber();
     String lastFourDigits = cardNumber.substring(cardNumber.length() - 4);
 
-    // Create response (stub implementation - always AUTHORIZED for now)
+    // Create bank request
+    BankPaymentRequest bankRequest = new BankPaymentRequest(
+        paymentRequest.getCardNumber(),
+        paymentRequest.getExpiryDate(),
+        paymentRequest.getCurrency(),
+        paymentRequest.getAmount(),
+        paymentRequest.getCvv()
+    );
+
+    // Submit to bank
+    BankPaymentResponse bankResponse = bankClient.submitPayment(bankRequest);
+
+    // Determine payment status based on bank response
+    PaymentStatus status = bankResponse.isAuthorized()
+        ? PaymentStatus.AUTHORIZED
+        : PaymentStatus.DECLINED;
+
+    // Create payment response
     PostPaymentResponse response = new PostPaymentResponse();
     response.setId(paymentId);
-    response.setStatus(PaymentStatus.AUTHORIZED);
+    response.setStatus(status);
     response.setCardNumberLastFour(Integer.parseInt(lastFourDigits));
     response.setExpiryMonth(paymentRequest.getExpiryMonth());
     response.setExpiryYear(paymentRequest.getExpiryYear());
@@ -57,7 +70,7 @@ public class PaymentGatewayService {
     // Store the created payment
     paymentsRepository.add(response);
 
-    LOG.info("Payment processed successfully with ID: {}", paymentId);
+    LOG.info("Payment processed successfully with ID: {} and status: {}", paymentId, status);
 
     return response;
   }

@@ -92,7 +92,6 @@ Rejected Error Response:
 ```json
 {
   "status": "Rejected",
-  "timestamp": "2025-01-10T14:30:00Z",
   "failure_reason": "validation_failed",
   "errors": [
     {
@@ -385,9 +384,6 @@ TODO: Logs + Metrics + Alerts
 
 # Appendix
 
-Currency Codes: Support only USD, GBP, EUR
-
-
 Build and Testing
 - Start bank simulator: `docker-compose up`
 - Build: `./gradlew build`
@@ -396,8 +392,8 @@ Build and Testing
 - Bank: http://localhost:8080/payments
 
 ## Development Tasks
-- [ ] POST Payment Request and Validations
-- [ ] BankClient
+- [x] POST Payment Request and Validations
+- [x] BankClient
 - [ ] Integrate BankClient in POST Payment, handle Authorized, Declined, Failed cases
 - [ ] Get Payment
 - [ ] Integration Testing
