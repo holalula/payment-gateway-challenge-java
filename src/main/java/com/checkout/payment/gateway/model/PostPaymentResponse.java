@@ -6,6 +6,7 @@ import java.util.UUID;
 
 public class PostPaymentResponse {
   private UUID id;
+
   private PaymentStatus status;
 
   @JsonProperty("last_four_card_digits")
@@ -18,8 +19,11 @@ public class PostPaymentResponse {
   private int expiryYear;
 
   private String currency;
+
   private int amount;
 
+  @JsonProperty("failure_reason")
+  private String failureReason;
 
   public UUID getId() {
     return id;
@@ -75,6 +79,14 @@ public class PostPaymentResponse {
 
   public void setAmount(int amount) {
     this.amount = amount;
+  }
+
+  public String getFailureReason() {
+    return failureReason;
+  }
+
+  public void setFailureReason(String failureReason) {
+    this.failureReason = failureReason;
   }
 
   @Override

@@ -1,6 +1,8 @@
 package com.checkout.payment.gateway.exception;
 
+import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.model.ErrorResponse;
+import com.checkout.payment.gateway.model.PostPaymentResponse;
 import com.checkout.payment.gateway.model.ValidationErrorResponse;
 import com.checkout.payment.gateway.model.ValidationErrorResponse.FieldError;
 import jakarta.validation.ConstraintViolation;
@@ -26,6 +28,19 @@ public class CommonExceptionHandler {
     LOG.error("Exception happened", ex);
     return new ResponseEntity<>(new ErrorResponse("Page not found"),
         HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(BankUnavailableException.class)
+  public ResponseEntity<PostPaymentResponse> handleBankUnavailableException(
+      BankUnavailableException ex) {
+    LOG.error("Bank unavailable exception: {}", ex.getMessage(), ex);
+
+    PostPaymentResponse response = new PostPaymentResponse();
+    response.setId(ex.getPaymentId());
+    response.setStatus(PaymentStatus.FAILED);
+    response.setFailureReason("bank_unavailable");
+
+    return new ResponseEntity<>(response, HttpStatus.BAD_GATEWAY);
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)

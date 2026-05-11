@@ -1,5 +1,6 @@
 package com.checkout.payment.gateway.controller;
 
+import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.model.PostPaymentRequest;
 import com.checkout.payment.gateway.model.PostPaymentResponse;
 import com.checkout.payment.gateway.service.PaymentGatewayService;
@@ -28,7 +29,13 @@ public class PaymentGatewayController {
   public ResponseEntity<PostPaymentResponse> processPayment(
       @Valid @RequestBody PostPaymentRequest request) {
     PostPaymentResponse response = paymentGatewayService.processPayment(request);
-    return new ResponseEntity<>(response, HttpStatus.CREATED);
+
+    // Return 201 for Authorized, 200 for Declined
+    HttpStatus status = response.getStatus() == PaymentStatus.AUTHORIZED
+        ? HttpStatus.CREATED
+        : HttpStatus.OK;
+
+    return new ResponseEntity<>(response, status);
   }
 
   @GetMapping("/payments/{id}")
