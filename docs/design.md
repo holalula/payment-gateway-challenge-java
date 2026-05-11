@@ -390,6 +390,8 @@ Build and Testing
 - Run tests: `./gradlew test`
 - Swagger: http://localhost:8081/swagger-ui.html
 - Bank: http://localhost:8080/payments
+- Generate Jacoco Test Report: `./gradlew test jacocoTestReport`
+- Open Jacoco HTML Test Report: `open build/reports/jacoco/test/html/index.html`
 
 ## Development Tasks
 - [x] POST Payment Request and Validations
