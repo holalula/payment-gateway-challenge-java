@@ -394,6 +394,6 @@ Build and Testing
 ## Development Tasks
 - [x] POST Payment Request and Validations
 - [x] BankClient
-- [ ] Integrate BankClient in POST Payment, handle Authorized, Declined, Failed cases
-- [ ] Get Payment
+- [X] Integrate BankClient in POST Payment, handle Authorized, Declined, Failed cases
+- [X] Get Payment
 - [ ] Integration Testing

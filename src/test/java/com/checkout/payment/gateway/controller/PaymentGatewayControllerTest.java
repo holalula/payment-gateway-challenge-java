@@ -50,8 +50,16 @@ class PaymentGatewayControllerTest {
 
   @Test
   void whenPaymentWithIdDoesNotExistThen404IsReturned() throws Exception {
-    mvc.perform(MockMvcRequestBuilders.get("/api/payments/" + UUID.randomUUID()))
+    UUID nonExistentId = UUID.randomUUID();
+    mvc.perform(MockMvcRequestBuilders.get("/api/payments/" + nonExistentId))
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.message").value("Page not found"));
+        .andExpect(jsonPath("$.message").value("Payment not found with ID: " + nonExistentId));
+  }
+
+  @Test
+  void whenInvalidUUIDFormatThen400IsReturned() throws Exception {
+    mvc.perform(MockMvcRequestBuilders.get("/api/payments/invalid-uuid"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").exists());
   }
 }

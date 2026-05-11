@@ -17,6 +17,7 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @ControllerAdvice
 public class CommonExceptionHandler {
@@ -28,6 +29,24 @@ public class CommonExceptionHandler {
     LOG.error("Exception happened", ex);
     return new ResponseEntity<>(new ErrorResponse("Page not found"),
         HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(PaymentNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handlePaymentNotFoundException(
+      PaymentNotFoundException ex) {
+    LOG.warn("Payment not found: {}", ex.getMessage());
+    return new ResponseEntity<>(
+        new ErrorResponse(String.format("Payment not found with ID: %s", ex.getPaymentId())),
+        HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
+      MethodArgumentTypeMismatchException ex) {
+    LOG.warn("Invalid parameter type: {}", ex.getMessage());
+    String message = String.format("Invalid Payment ID format for parameter '%s': %s",
+        ex.getName(), ex.getValue());
+    return new ResponseEntity<>(new ErrorResponse(message), HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(BankUnavailableException.class)
@@ -91,8 +110,7 @@ public class CommonExceptionHandler {
   }
 
   private Object getGlobalErrorValue(ObjectError error) {
-    // For global errors, we don't have a specific field value
-    // Return the object name or a placeholder
+    // TODO: Return combination of field names for a custom error
     return error.getObjectName();
   }
 }

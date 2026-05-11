@@ -4,7 +4,8 @@ import com.checkout.payment.gateway.model.bank.BankPaymentRequest;
 import com.checkout.payment.gateway.model.bank.BankPaymentResponse;
 import com.checkout.payment.gateway.enums.PaymentStatus;
 import com.checkout.payment.gateway.exception.BankUnavailableException;
-import com.checkout.payment.gateway.exception.EventProcessingException;
+import com.checkout.payment.gateway.exception.PaymentNotFoundException;
+import com.checkout.payment.gateway.model.GetPaymentResponse;
 import com.checkout.payment.gateway.model.PostPaymentRequest;
 import com.checkout.payment.gateway.model.PostPaymentResponse;
 import com.checkout.payment.gateway.repository.PaymentsRepository;
@@ -28,9 +29,13 @@ public class PaymentGatewayService {
     this.bankClient = bankClient;
   }
 
-  public PostPaymentResponse getPaymentById(UUID id) {
+  public GetPaymentResponse getPaymentById(UUID id) {
     LOG.debug("Requesting access to payment with ID {}", id);
-    return paymentsRepository.get(id).orElseThrow(() -> new EventProcessingException("Invalid ID"));
+
+    PostPaymentResponse payment = paymentsRepository.get(id)
+        .orElseThrow(() -> new PaymentNotFoundException(id));
+
+    return mapToGetPaymentResponse(payment);
   }
 
   public PostPaymentResponse processPayment(PostPaymentRequest paymentRequest) {
@@ -98,5 +103,17 @@ public class PaymentGatewayService {
         paymentRequest.getAmount(),
         paymentRequest.getCvv()
     );
+  }
+
+  private GetPaymentResponse mapToGetPaymentResponse(PostPaymentResponse payment) {
+    GetPaymentResponse response = new GetPaymentResponse();
+    response.setId(payment.getId());
+    response.setStatus(payment.getStatus());
+    response.setCardNumberLastFour(payment.getCardNumberLastFour());
+    response.setExpiryMonth(payment.getExpiryMonth());
+    response.setExpiryYear(payment.getExpiryYear());
+    response.setCurrency(payment.getCurrency());
+    response.setAmount(payment.getAmount());
+    return response;
   }
 }
